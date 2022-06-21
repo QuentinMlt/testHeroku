@@ -5,6 +5,7 @@ const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const cors = require('cors')
 // Bdd
 const DbSet = require('./db.js');
 const Taches = new DbSet('Taches');
@@ -17,6 +18,7 @@ if (!process.env.SECRET_KEY) {
 
 // Middleware
 app.use(express.json());
+app.use(cors())
 // - Authentification
 function authenticationToken(req, res, next){
     const token = req.header('x-auth-token');
@@ -31,6 +33,7 @@ function authenticationToken(req, res, next){
         throw new Error('Le token que vous avez fourni est invalide');
     }
 }
+
 
 // Routes Taches
 app.get('/task', (req, res) => {
@@ -136,6 +139,12 @@ app.post('/login', async (req, res) => {
     }
     const token = jwt.sign({id}, process.env.SECRET_KEY);
     res.header('x-auth-token', token).status(200).send("Connexion réussie");
+});
+
+app.post('/loginToken', [authenticationToken], (req, res) => {
+    const user = Users.get(req.user.id);
+    console.log(user);
+    res.status(200).send(user);
 });
 
 // Middleware d'erreur 400
